@@ -1,5 +1,4 @@
-import os
-import spotipy
+import os, spotipy, sys
 from spotipy.oauth2 import SpotifyOAuth
 from pathlib import Path
 from dotenv import load_dotenv
@@ -46,4 +45,9 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 
 # Pedir o estado atual do player
 playback = sp.current_playback()
-print(playback)
+if playback is None:
+    print("O spotify não tem musica a dar")
+    sys.exit(0)
+
+item = playback["item"]
+print(item["name"])
