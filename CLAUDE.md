@@ -68,8 +68,8 @@ Decisões já tomadas:
 - [x] **Fase 1:** Debian configurado, SSH, utilizador `jukebox`, kiosk a arrancar sozinho
 - [x] App criada no Spotify Developer Dashboard
 - [ ] **Fase 2:** Spotify Now Playing
-  - [ ] `spotify_test.py`: imprimir a música atual no terminal  ← **estou aqui**
-  - [ ] Backend FastAPI com polling e WebSocket
+  - [x] `spotify_test.py`: imprimir a música atual no terminal
+  - [ ] Backend FastAPI com polling e WebSocket  ← **estou aqui**
   - [ ] Ecrã Now Playing
   - [ ] Serviço systemd e kiosk a apontar para `http://127.0.0.1:8000`
 - [ ] **Fase 3:** CD (primeiro simulado, depois o real)

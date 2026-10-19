@@ -50,4 +50,25 @@ if playback is None:
     sys.exit(0)
 
 item = playback["item"]
-print(item["name"])
+if item is None:
+    print("O spotify não tem musica a dar")
+    sys.exit(0)
+
+
+def format_ms(ms):
+    """Converte milissegundos para o formato m:ss."""
+    total_seconds = ms // 1000
+    minutes, seconds = divmod(total_seconds, 60)
+    return f"{minutes}:{seconds:02d}"
+
+
+title = item["name"]
+album = item["album"]["name"]
+artists = ", ".join(artist["name"] for artist in item["artists"])
+progress = format_ms(playback["progress_ms"])
+duration = format_ms(item["duration_ms"])
+status = "▶" if playback["is_playing"] else "⏸"
+
+print(f"{status} {title} — {artists}")
+print(f"  {album}")
+print(f"  {progress} / {duration}")
