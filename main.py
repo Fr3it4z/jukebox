@@ -1,4 +1,6 @@
+import asyncio
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import spotipy
@@ -45,13 +47,15 @@ auth_manager = SpotifyOAuth(
 # Cliente que faz os pedidos à API
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
-app = FastAPI()
+# De quantos em quantos segundos perguntamos ao Spotify
+POLL_INTERVAL = 5
+
+# Estado central: o loop escreve aqui, os endpoints leem daqui
+state = {"active": False}
 
 
-# --- Corre a cada pedido ---
-
-@app.get("/now-playing")
-def now_playing():
+def read_spotify():
+    """Pergunta ao Spotify o que está a tocar e devolve um dicionário simples."""
     playback = sp.current_playback()
 
     # Nada a tocar: não é um erro, é um estado normal
@@ -71,3 +75,35 @@ def now_playing():
         "progress_ms": playback["progress_ms"],
         "duration_ms": item["duration_ms"],
     }
+
+
+async def poll_spotify():
+    """Loop em segundo plano: atualiza o estado de POLL_INTERVAL em POLL_INTERVAL segundos."""
+    global state
+    while True:
+        try:
+            # O spotipy é bloqueante, por isso corre numa thread à parte
+            state = await asyncio.to_thread(read_spotify)
+        except Exception as error:
+            # Sem rede ou erro do Spotify: avisa e tenta outra vez no próximo ciclo
+            print(f"Erro ao ler o Spotify: {error}")
+        await asyncio.sleep(POLL_INTERVAL)
+
+
+@asynccontextmanager
+async def lifespan(app):
+    # Antes do yield: corre quando o servidor arranca
+    task = asyncio.create_task(poll_spotify())
+    yield
+    # Depois do yield: corre quando o servidor desliga
+    task.cancel()
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+# --- Corre a cada pedido ---
+
+@app.get("/now-playing")
+def now_playing():
+    return state
